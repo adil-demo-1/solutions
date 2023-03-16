@@ -1,0 +1,37 @@
+Answer for 1 - AWS Security: Enterprise Application Suite:
+
+As of January 2023, Amazon S3 will automatically encrypt new object uploads and encryption cannot be disabled for new object uploads. (https://docs.aws.amazon.com/AmazonS3/latest/userguide/default-encryption-faq.html)
+
+I see, this question was added to GitHub on 2021. I will assume that the new objects will not be encrypted automatically. After obtain the KMS key through AWS, the files must be uploaded with Server Side Encryption (SSE) Key Management Service (KMS) Key Id parameter (SSEKMSKeyId) and ServerSideEncryption key's value must be "aws:kms"
+
+s3_client.upload_file('file.txt', 'bucket_name', 'file.txt', ExtraArgs={"SSEKMSKeyId": "KMS_KEY_ID", "ServerSideEncryption": "aws:kms"})
+
+--
+
+Answer for 2 AWS Web APP: Handling DOS Traﬃc:
+
+I'd enable AWS WAF since this is a Layer 7 attack (someone is crawling the site):
+	- I'd enable AWS WAF Logs to improve the observability. I'd trigger alarms via CloudWatch.
+	- I'd enable AWS WAF Bot Control with "CategoryScrapingFramework" rule. (https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-bot.html)
+	- Since this is a DoS Attack, I'd block IP address or addresses dynamically (https://aws.amazon.com/blogs/security/automatically-updating-aws-waf-rule-in-real-time-using-amazon-eventbridge/)
+	- I'd enable AWS WAF client application integration. JavaScript integrations drastically reduce the DoS/DDoS attacks. (https://docs.aws.amazon.com/waf/latest/developerguide/waf-application-integration.html)
+	- If it is okay for the management, I'd enable the CAPTCHA protection feature of AWS WAF
+
+I'd enable AWS Shield Advanced avoid Layer 3/4/7 attacks as well.
+	- AWS Shield Advanced will enable a protection for Route 53, CloudFront, Load Balancer and EC2.
+	- I'd have a broad range of logging for the AWS resources protected by the AWS Shield Advanced services. It would help me to understand the attack's source and attack trends. Besides, I'd generate alarms via CloudWatch.
+
+--
+
+Answer for 3 Application Load Balancer
+
+1) I'd invoke the functions asynchronously. If there is no available concurrency limit to execute the function, Lambda will add the request to the queue. Lambda will attampt to run the function again for up to 6 hours. This is called Max. Event Age and it can be changed from 60 seconds to 6 hours.
+
+2) I'd priorities the functions in terms of business critical level. I'd set reserved concurrency limit for the most critical functions.
+
+--
+
+Answer for 4 Developer Associate
+
+1) Since the DynamoDB Table in the Account B, I'd create a IAM role in Account B that can access the DynamoDB Table. I'd create a IAM role in Account A and enable the trust relationship between Account A and Account B. I'd access the DynamoDB Table from the Account A via AssumeRole.
+
